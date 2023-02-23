@@ -33,7 +33,7 @@ layout = html.Div(children=[
                 html.A(dbc.Button('<--- Stock Data', id='get_feature', style={'width':'200px', 'margin':'10px'}), href='/upload'),
                 html.A(dbc.Button('Forecasting --->', id='get_forcast', style={'width':'200px', 'margin':'10px'}), href='/predict'),
             ], className='d-flex flex-wrap justify-content-center'),
-    ], className='div-container p-sm-1 p-md-3', style={'min-width':'80%', 'min-height':'90%'})
+    ], className='div-container p-sm-1 p-md-3', style={'min-width':'80%', 'max-width':'95%','min-height':'90%'})
 ], className='min-vh-100 d-flex flex-column justify-content-center align-items-center', 
              style={"background-color": "#ECF9FF"})
 

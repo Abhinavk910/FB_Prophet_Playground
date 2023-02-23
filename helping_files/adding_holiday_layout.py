@@ -37,8 +37,12 @@ table = dash_table.DataTable(
     editable=True,
     row_deletable=True,
     style_cell={
-        'textAlign': 'center'
+        'textAlign': 'center',
+        'whiteSpace':'normal',
+        'height':'auto'
     },
+    style_table={'overflowX':'auto'},
+    style_header={'fontWeight':'bold'}
 )
 
 add_row = dbc.Button('Add Row', id='add-row-button',style={'width':'50px','font-size':'10px', 'margin':'1px', 'padding':'1px'}, n_clicks=0)
