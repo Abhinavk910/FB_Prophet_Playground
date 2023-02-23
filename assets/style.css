@@ -1,0 +1,133 @@
+.div-container{
+	background-color:#fff;
+	box-shadow: 0 4px 8px 0 rgb(53 105 128 / 30%), 0 6px 20px 0 rgb(165 200 213 / 41%);
+	padding:10px;
+	margin:7px;
+}
+
+.div-container2{
+	background-color:#fff;
+	box-shadow: 0 4px 8px 0 rgb(53 105 128 / 30%), 0 6px 20px 0 rgb(165 200 213 / 41%);
+	padding:10px;
+	margin:10px 20px;
+}
+
+.div-container33{
+	margin:10px 13px;
+}
+
+.years>.Select--multi .Select-value {
+  background-color: #ff4444;
+  color: #fff;
+}
+
+
+
+.years>.Select-value {
+//background-color: pink;
+color: #fff;
+//border: 1px solid red;
+}
+.years>.Select-value-icon {
+border-right: 10px solid yellow;
+background-color:red;
+}
+.years>.VirtualizedSelectFocusedOption {
+background-color: orange;
+color:white
+}
+
+.dropdown-class-3 > .Select-control {
+   width:100% !important;
+   border: 2px solid black;
+   border-radius:20px;
+   background-color:#FCE22A;
+   display:flex
+}
+
+.dropdown-class-2 > .Select-control {
+   width:100% !important;
+   border: 2px solid black;
+   border-radius:20px;
+   background-color:#FCE22A;
+   display:flex
+}
+.dropdown-class-3 {
+   flex-grow:1
+}
+.dropdown-class-3 >.Select-control .Select-multi-value-wrapper {
+    flex-grow:2;
+    text-align:center;
+    //font-size:0.7em
+}
+
+.dropdown-class-3 >.Select-control .Select-value, .Select-placeholder 
+{
+    line-height: 11px;
+}
+
+
+/* for color of label before and after focused */
+.dropdown-class-2.has-value.Select--single>.Select-control .Select-value .Select-value-label{
+    color:red;
+}
+.dropdown-class-2.has-value.is-pseudo-focused.Select--single>.Select-control .Select-value .Select-value-label {
+    color:green;
+}
+
+.dropdown-class-2.has-value.is-pseudo-focused.Select--single>.Select-control{
+    color:green;
+    border: 2px solid green;
+    border-radius:20px;
+}
+
+.dropdown-class-3.Select span{
+	color:red;
+        font-size:1em;
+}
+.dropdown-class-2 .dropdown-caret {
+    color: red;
+}
+.dropdown-class-2::before {
+    //color: red;
+}
+
+
+.dropdown-class-2 .Select-arrow {
+	border-color:red transparent transparent;
+	font-size:1em;
+	margin-top:0.3rem;
+	//background-color:red;
+}
+
+.Select-arrow-zone:hover>.Select-arrow, .is-open .Select-arrow{
+	//border-top-color:pink;
+}
+
+.dropdown-class-2 .Select-arrow::after{
+  border-color:red transparent transparent !important; /* or any other color you want */
+}
+a {
+  text-decoration: none; /* no underline */
+}
+
+.SingleDatePicker.SingleDatePicker_1{
+ width:100% !important;
+}
+
+.SingleDatePickerInput.SingleDatePickerInput_1.SingleDatePickerInput__withBorder.SingleDatePickerInput__withBorder_2{
+ width:100% !important;
+ height:35px;
+ display:flex;
+justify-content: center;
+} 
+
+.DateInput_input.DateInput_input_1{
+ background:#fff;
+     padding: 3px 1px 3px 3px;
+    margin: 0 auto;
+text-align:center;
+font-size:1.2rem;
+font-weight:400;
+
+}
