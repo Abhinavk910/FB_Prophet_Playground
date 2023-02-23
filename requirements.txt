@@ -17,9 +17,7 @@ dash-daq
 dash-extensions
 dash-renderer
 dash-table
-beautifulsoup4==4.9.1
-requests==2.23.0
-werkzeug==2.0.3
+werkzeug
 prophet
 yfinance
 xlsxwriter
