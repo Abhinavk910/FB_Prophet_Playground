@@ -227,21 +227,12 @@ layout = html.Div(children=[
                     ], id='hidden-div', hidden=True)
             ], className='col-sm-12 justify-content-center flex-wrap')
         ], className='row ', style={'text-align':'center'}),
-# dcc.Loading(html.P(id='check')),
-        html.Hr(style={'margin':'0 2 2 2'}, id='graph-hr', hidden=True),
-        
-        html.Div([
-            html.Div([
-                    dcc.Loading(html.H2(id='stock-name')),
-                    dcc.Loading(dcc.Graph(id='fig1'))
-            ], className='col-sm-12')
-    ], className='row', style={'margin':'auto'}, id='graph-row', hidden=True)
-    ], className='div-container p-sm-1 p-md-5', style={'min-width':'80%'})
-], className='min-vh-100 d-flex flex-column justify-content-center align-items-center', 
+    ], className='div-container p-sm-1 p-md-5', style={'min-width':'80%', 'max-width':'95%', 'text-align':'center'})
+], className='min-vh-100 d-flex flex-column justify-content-center align-items-center mx-md-auto  mx-sm-0', 
              style={"background-color": "#ECF9FF"})
 
 
-
+:
 @dash.callback([Output("data-content", "children"), Output('store-data1', 'data')],
                [Input("data-tab", "active_tab")])
 def switch_tab(at):
