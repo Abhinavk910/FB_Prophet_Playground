@@ -228,11 +228,8 @@ layout = html.Div(children=[
             ], className='col-sm-12 justify-content-center flex-wrap')
         ], className='row ', style={'text-align':'center'}),
     ], className='div-container p-sm-1 p-md-5', style={'min-width':'80%', 'max-width':'95%', 'text-align':'center'})
-], className='min-vh-100 d-flex flex-column justify-content-center align-items-center mx-md-auto  mx-sm-0', 
-             style={"background-color": "#ECF9FF"})
+], className='min-vh-100 d-flex flex-column justify-content-center align-items-center mx-md-auto  mx-sm-0',style={"background-color": "#ECF9FF"})
 
-
-:
 @dash.callback([Output("data-content", "children"), Output('store-data1', 'data')],
                [Input("data-tab", "active_tab")])
 def switch_tab(at):
