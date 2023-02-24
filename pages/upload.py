@@ -58,10 +58,16 @@ upload_layout = html.Div([
                              dash_table.DataTable(
                                  data=None,
                                  id='upload-datatable',
-                                 style_table={'overflowX': 'scroll', 'width': '90%'}
+                                 style_cell={
+                                        'textAlign': 'center',
+                                        'whiteSpace':'normal',
+                                        'height':'auto'
+                                    },
+                                    style_table={'overflowX':'auto'},
+                                    style_header={'fontWeight':'bold'}
                                  
                              ),
-                         ], className='', style={"width":'90%'})
+                         ], className='d-flex flex-column', style={'text-align':'center'})
                      ], className='col-sm-12 col-md-6'),
                      html.Div([
                          html.Div([
@@ -78,7 +84,7 @@ upload_layout = html.Div([
                                          ], className='col-sm-12 col-md-8')
                                      ], className='row')
                                  ], className='col-sm-12'),
-                                 html.Hr(),
+                                 html.Hr(className="mt-3"),
                                  html.Div([
                                      html.Div([
                                          html.Div([
@@ -95,7 +101,7 @@ upload_layout = html.Div([
                          ], className='m-4 p-3')
                      ], className='col-sm-12 col-md-6')
                  ], className='row g-0')
-                 ], id='output-data-upload',className='div-container3', hidden=True),
+                 ], id='output-data-upload',className='div-container3 mt-3', hidden=True),
     
         html.Div([
             html.Div([
