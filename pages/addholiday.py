@@ -23,7 +23,7 @@ layout = html.Div(children=[
     html.Div([
         dbc.Tabs([
             dbc.Tab(label="Adding Holiday", tab_id="tab-1"),
-            dbc.Tab(label="New Features(WIP)", tab_id="tab-2"),
+            # dbc.Tab(label="New Features(WIP)", tab_id="tab-2"),
             ],
             id="tabs", active_tab="tab-1",
         ),
