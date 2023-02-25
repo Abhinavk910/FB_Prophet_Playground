@@ -5,7 +5,7 @@ Created on Sat Feb 18 16:10:26 2023
 @author: abhinav.kumar
 """
 
-from dash import html, dcc, Input, Output, State
+from dash import html, dcc, Input, Output, State, dash_table
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -13,6 +13,34 @@ from prophet import Prophet
 import plotly.express as px
 from datetime import date, timedelta, datetime
 import plotly.graph_objects as go
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from math import sqrt
+
+
+def get_mae(y_true, y_pred):
+    mae = mean_absolute_error(y_true, y_pred)
+    return round(mae, 2)
+
+def get_mse(y_true, y_pred):
+    mse = mean_squared_error(y_true, y_pred)
+    return round(mse, 2)
+
+def get_rmse(y_true, y_pred):
+    mse = mean_squared_error(y_true, y_pred)
+    rmse = sqrt(mse)
+    return round(rmse, 2)
+    
+def get_mape(y_true, y_pred):
+    mape = 100*((y_true - y_pred)/y_true).abs().mean()
+    return round(mape, 2)
+
+def get_mase(y_true, y_pred, y_train):
+    mae_test = (y_true - y_pred).abs().mean()
+    y_t = y_train
+    y_t_1 = y_train.shift(-1)
+    mae_train = (y_t - y_t_1).abs().mean()
+    return round(mae_test/mae_train, 2)
 
 dash.register_page(__name__)
 
@@ -37,7 +65,7 @@ predict = html.Div([
                 end_date_placeholder_text="End Period",
                 # min_date_allowed=date(1995, 8, 5),
                 max_date_allowed=date.today(),
-                style={'width':'100%'}
+                style={'width':'100%', 'font-size':'12px'}
                 # calendar_orientation='vertical',
             )
                 ], className='div-container') 
@@ -55,6 +83,28 @@ predict = html.Div([
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
+        html.Div([
+            html.Div([
+            html.Span('Metrics'),
+            dcc.Dropdown(
+                id='mes-para',
+                options=[
+                    {'label': str(i), 'value': j} for (i, j) in {'Mean Absolute Error':'MAE',
+                                                               'Mean Squared Error': 'MSE',
+                                                               'Root Mean Squared Error':'RMSE',
+                                                               'Mean Absolute Percentage Error':'MAPE',
+                                                               'mean absolute scaled error':'MASE'
+                                                               # 'Symmetric Mean Absolute Percentage Error':'SMAPE',
+                                                               # 'Mean Directional Accuracy':'MDA'
+                                                               }.items()
+                ],
+                value=['MAPE'],
+                multi=True,
+                clearable=False,
+            )
+            ], className='div-container')
+        ], className='col-sm-12 col-md-4'),
+        
     ], className='row', style={'margin':'auto'}),
     html.Hr(style={'margin':'0 2 2 2'}),
     html.Div([
@@ -67,7 +117,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in [10,15, 20, 25,30, 35, 40, 45, 50]
                 ],
                 value=[25],
-                multi=True
+                multi=True,
+                clearable=False,
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4'),
@@ -80,7 +131,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in [0.01,0.03,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45, 0.5]
                 ],
                 value=[0.05],
-                multi=True
+                multi=True,
+                clearable=False,
                 
             )
                 ], className='div-container') 
@@ -94,7 +146,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in [0,0.1, 0.2, 0.3, 0.4,0.5, 0.6, 0.7, 0.8,0.9, 1]
                 ],
                 value=[0.8],
-                multi=True
+                multi=True,
+                clearable=False,
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4'),
@@ -107,7 +160,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in [0.01,1,5, 10]
                 ],
                 value=[10],
-                multi=True
+                multi=True,
+                clearable=False,
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
@@ -120,7 +174,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in [0.01,1,5, 10]
                 ],
                 value=[10],
-                multi=True
+                multi=True,
+                clearable=False,
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
@@ -133,7 +188,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in ['additive', 'multiplicative']
                 ],
                 value=['additive'],
-                multi=True
+                multi=True,
+                clearable=False,
             )
             ], className='div-container')  
         ], className='col-sm-12 col-md-4'),
@@ -159,7 +215,8 @@ predict = html.Div([
                         {'label': str(i), 'value': i} for i in ['auto', True, False]
                     ],
                     value=['auto'],
-                    multi=True
+                    multi=True,
+                    clearable=False,
                 )
             ], className='div-container')
         ], className='col-sm-12 col-md-4  '),
@@ -172,7 +229,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in ['auto', True, False]
                 ],
                 value=['auto'],
-                multi=True
+                multi=True,
+                clearable=False,
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4 '),
@@ -185,7 +243,8 @@ predict = html.Div([
                     {'label': str(i), 'value': i} for i in ['auto', True, False]
                 ],
                 value=['auto'],
-                multi=True
+                multi=True,
+                clearable=False,
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4'),
@@ -196,7 +255,9 @@ predict = html.Div([
         html.Div([
             html.Div([
                 html.H2(id='value'),
-                dcc.Loading(dcc.Graph(id='fig3'))
+                dcc.Loading(dcc.Graph(id='fig3')),
+                html.Hr(style={'margin':'0 2 2 2'}),
+                html.Div(id='result', className='p-sm-1 p-my-5')
             ], className='div-container')
         ], className='col-sm-12')
     ], className='row', style={'margin':'auto'}),
@@ -359,7 +420,8 @@ def update_daterage2(data):
     [
         Output('value', 'children'),
         Output('fig3', 'figure'),
-        Output('store-data-final', 'data')
+        Output('store-data-final', 'data'),
+        Output('result', 'children')
     ],
     [
         Input('id1', 'value'),
@@ -374,19 +436,21 @@ def update_daterage2(data):
         Input('id10', 'value'),
         Input('date-range2', 'start_date'),
         Input('date-range2', 'end_date'),
-        Input('date-range3', 'date')
+        Input('date-range3', 'date'),
+        Input('mes-para', 'value')
     ],
     [
         State('store-data1', 'data'),
         State('store-data2', 'data'),
         State('store-data5', 'data'),
         State('store-data4', 'data'),
+        
     ]
 )
-def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
+def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,mes_para,
                tab, stock, upload, holiday_meta_data):
     try:
-            
+        
         testing_interval = (datetime.strptime(dr_t, "%Y-%m-%d") - datetime.strptime(dr_e, "%Y-%m-%d")).days
         
         if not isinstance(id1, list):
@@ -453,7 +517,7 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
             tdata = pd.read_json(stock['data'], orient='records')
             stock_name = stock['stock_name']
         
-        
+        tdata = tdata.dropna()
         
         tdata.columns = ['ds', 'y']
         tdata['ds'] = pd.to_datetime(tdata.ds).dt.strftime('%Y-%m-%d')
@@ -484,8 +548,9 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
         # test = tdata.set_index('ds', drop=True)
         # test = tdata.loc[dr_e:dr_t]
         # test.reset_index(inplace=True)
+        y_train_final = pd.DataFrame([])
         if times_it>1:
-            y_train_final = pd.DataFrame([])
+            
             for i, params in enumerate(total_params):
                 if holiday:
                     m = Prophet(**params, holidays=holiday_df).fit(data)
@@ -507,7 +572,8 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
                 m = Prophet(**params).fit(data)
             future = m.make_future_dataframe(periods=testing_interval+30)
             y_train_final = m.predict(future)
-            y_train_final = y_train_final.loc[:, ['ds', 'yhat']]    
+            y_train_upper_lower = y_train_final.loc[:, ['ds', 'yhat_lower', 'yhat_upper']]
+            y_train_final = y_train_final.loc[:, ['ds', 'yhat']]
             y_train_final['Type'] = 'Prediction'
             y_train_final.columns = ['ds', 'yhat', 'Type']
             y_train_final['ds'] = pd.to_datetime(y_train_final.ds).dt.strftime('%Y-%m-%d')
@@ -517,7 +583,7 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
         data2.reset_index(inplace=True)
         data2['Type'] = 'Actual'
         data2.columns = ['ds', 'yhat', 'Type']
-    
+        
         
         df = pd.concat([y_train_final, data2])
             
@@ -560,13 +626,13 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
         fig.update_yaxes(
                     title=None,
                     showline = False,
-    
+        
                     showgrid=False,
-    
+        
                     fixedrange=True,
-    
+        
                     zeroline = False,
-    
+        
                     nticks=5,
                     ticks="inside",
                     tickcolor='black',
@@ -604,16 +670,110 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
                                       )
             fig.add_trace(scatter_trace)
             
+        
+        if times_it == 1:
+           scatter_trace_upper =  go.Scatter(
+                name='Upper Bound',
+                x=y_train_upper_lower['ds'],
+                y=y_train_upper_lower['yhat_upper'],
+                mode='lines',
+                marker=dict(color="#444"),
+                line=dict(width=0),
+                showlegend=False
+                )
+           fig.add_trace(scatter_trace_upper)
+           scatter_trace_lower = go.Scatter(
+                name='Lower Bound',
+                x=y_train_upper_lower['ds'],
+                y=y_train_upper_lower['yhat_lower'],
+                marker=dict(color="#444"),
+                line=dict(width=0),
+                mode='lines',
+                fillcolor='rgba(68, 68, 68, 0.3)',
+                fill='tonexty',
+                showlegend=False
+                )
+           fig.add_trace(scatter_trace_lower)
+        
+        
+        df = pd.pivot_table(data=df, index='ds', values='yhat', columns='Type')
+        df = df.loc[dr_e:dr_t]      
+        df = df.dropna()
+        
+        test = 'Actual'
+        y_true = df[test]
+        list_of_col = list(df.columns)
+        list_of_col.remove(test)
+        preds = list_of_col
+        
+        result_data = {}
+        
+        if 'MAE' in mes_para:
+            res = []
+            for pred in preds:
+                y_pred = df[pred]
+                res.append(get_mae(y_true, y_pred))
+            result_data['MAE'] = res
+        if 'MSE' in mes_para:
+            res = []
+            for pred in preds:
+                y_pred = df[pred]
+                res.append(get_mse(y_true, y_pred))
+            result_data['MSE'] = res
+        if 'RMSE' in mes_para:
+            res = []
+            for pred in preds:
+                y_pred = df[pred]
+                res.append(get_rmse(y_true, y_pred))
+            result_data['RMSE'] = res
+        if 'MAPE' in mes_para:
+            res = []
+            for pred in preds:
+                y_pred = df[pred]
+                res.append(get_mape(y_true, y_pred))
+            result_data['MAPE'] = res
+        if 'MASE' in mes_para:
+            res = []
+            for pred in preds:
+                y_pred = df[pred]
+                res.append(get_mae(y_true, y_pred))
+            result_data['MASE'] = res
+            
+        result = pd.DataFrame(result_data).T
+        result.columns = preds
+        result.reset_index(inplace=True)
+        val = list(result.columns)
+        tabled = html.Div([
+            html.H4('Metrics'),
+            dash_table.DataTable(
+                data=result.to_dict('records'),
+                columns=[{'name':i, 'id':i} for i in val],
+                style_cell={
+                    'textAlign': 'center',
+                    # 'overflowX': 'scroll',
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                },
+                style_table={'overflowX': 'auto'},
+        
+                style_header={
+                    # 'backgroundColor': 'white',
+                    'fontWeight': 'bold'
+                },
+                
+            ),
+        ], className='d-flex flex-column', style={'text-align':'center'})
+        
         return [
             f'{stock_name}',
-               fig, df.to_json(orient='records', date_format='iso')]
+               fig, df.to_json(orient='records', date_format='iso'), tabled]
     
-    except:
+    except Exception as e:
         fig = go.Figure()
         fig.add_layout_image(dict(
         source="assets/image.jpg",
         x=0.2,
-        y=0.1   ,
+        y=0.1,
         )
         )
         fig.update_layout_images(dict(
@@ -645,7 +805,7 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,
                     tickmode='array',
                     tickvals=[]
                     )
-        return ['Error - Probably low data points.', fig, None]
+        return ['Error', fig, None, str(e)]
 
 
 @dash.callback(Output("download_xslx", "data"), 
