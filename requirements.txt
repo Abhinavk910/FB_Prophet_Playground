@@ -22,4 +22,4 @@ prophet
 yfinance
 xlsxwriter
 openpyxl
-sklearn
+scikit-learn
