@@ -55,7 +55,7 @@ upload_layout = html.Div([
                  html.Div([
                      html.Div([
                          html.Div([
-                             html.H4('First 3 rows'),
+                             html.H4('Sample'),
                              dash_table.DataTable(
                                  data=None,
                                  id='upload-datatable',
@@ -112,7 +112,7 @@ upload_layout = html.Div([
     
         html.Div([
             html.Div([
-                dbc.Button('UPLOAD Extract Data',id='get-upload-data', style={'width':'200px', 'margin':'10px'}),
+                dbc.Button('Plot',id='get-upload-data', style={'width':'200px', 'margin':'10px'}),
                 html.Div([
                         html.A(dbc.Button('Adding Features --->', id='get_feature', style={'width':'200px', 'margin':'10px'}), href='/addholiday'),
                         html.A(dbc.Button('Forecasting --->', id='get_forcast', style={'width':'200px', 'margin':'10px'}), href='/predict')
