@@ -742,6 +742,7 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
         result = pd.DataFrame(result_data).T
         result.columns = preds
         result.reset_index(inplace=True)
+        result = result.rename(coluns={'index':'Metrics'})
         val = list(result.columns)
         tabled = html.Div([
             html.H4('Metrics'),
