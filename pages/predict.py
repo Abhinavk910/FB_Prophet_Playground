@@ -157,7 +157,7 @@ predict = html.Div([
             dcc.Dropdown(
                 id='id2',
                 options=[
-                    {'label': str(i), 'value': i} for i in [0.01,1,5, 10]
+                    {'label': str(i), 'value': i} for i in [0.001, 0.005, 0.01, 0.5, 1]
                 ],
                 value=[10],
                 multi=True,
@@ -171,7 +171,7 @@ predict = html.Div([
             dcc.Dropdown(
                 id='id3',
                 options=[
-                    {'label': str(i), 'value': i} for i in [0.01,1,5, 10]
+                    {'label': str(i), 'value': i} for i in [0.001, 0.005, 0.01, 0.5, 1]
                 ],
                 value=[10],
                 multi=True,
