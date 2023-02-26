@@ -212,7 +212,7 @@ predict = html.Div([
                 dcc.Dropdown(
                     id='id7',
                     options=[
-                        {'label': str(i), 'value': i} for i in ['auto', True, False]
+                        {'label': str(i), 'value': i} for i in ['auto', True, False, 10, 20, 30, 40, 50]
                     ],
                     value=['auto'],
                     multi=True,
@@ -226,7 +226,7 @@ predict = html.Div([
             dcc.Dropdown(
                 id='id8',
                 options=[
-                    {'label': str(i), 'value': i} for i in ['auto', True, False]
+                    {'label': str(i), 'value': i} for i in ['auto', True, False, 10, 20, 30, 40, 50]
                 ],
                 value=['auto'],
                 multi=True,
@@ -240,7 +240,7 @@ predict = html.Div([
             dcc.Dropdown(
                 id='id9',
                 options=[
-                    {'label': str(i), 'value': i} for i in ['auto', True, False]
+                    {'label': str(i), 'value': i} for i in ['auto', True, False, 10, 20, 30, 40, 50]
                 ],
                 value=['auto'],
                 multi=True,
