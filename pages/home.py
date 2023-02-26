@@ -14,7 +14,7 @@ layout = html.Div(children=[
         html.Div([
 
         html.Div([
-                html.H3(children='Welcome to Prophet Playground!!'),
+                html.H3(children='Welcome to FB Prophet Playground!!'),
                 html.A(dbc.Button('Upload Data'), href='/upload'),
                 ], className='div-container text-center p-5'),
         html.Div([
