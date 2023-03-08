@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Created on Sun Feb 12 16:14:13 2023
@@ -31,7 +30,7 @@ upload_layout = html.Div([
                 dcc.Upload(
                     id='upload-data',
                     children=html.Div([
-                        html.A('Select Files')
+                        html.A('Select File')
                     ]),
                     style={
                         'height': '30px','lineHeight': '30px','borderWidth': '1px','borderStyle': 'dashed',
@@ -55,7 +54,7 @@ upload_layout = html.Div([
                  html.Div([
                      html.Div([
                          html.Div([
-                             html.H4('Sample'),
+                             html.H4('First 3 rows'),
                              dash_table.DataTable(
                                  data=None,
                                  id='upload-datatable',
@@ -318,7 +317,7 @@ def show_input1(nclick, data_upload_final, upload_data, data_col, date_col, tab)
     # if tab_active == 'tab-10':
     if nclick:
         if data_col is None or date_col is None:
-            val = 'Select Date and Data Columns'
+            val = 'Please upload data, if uploaded then select Date and Data Columns'
             return [None, True, val, 'danger', None, True, True, True]
         elif data_col == date_col:
             val = 'Please select date and data saperates column'
@@ -342,6 +341,7 @@ def show_input1(nclick, data_upload_final, upload_data, data_col, date_col, tab)
                 meta_data['stock_name'] = 'Uploaded Data'
                 df = df.sort_values('ds').reset_index(drop=True)
                 meta_data['start_from'] = str(df.loc[0, 'ds'])
+                meta_data['end_date'] = str(df.loc[len(df)-1, 'ds'])
                 return [meta_data, 
                         True, val, 'info', fig, False, False, False]
     elif tab == 'tab-10' and data_upload_final is not None:
@@ -393,7 +393,7 @@ def show_input(val):
         State('store-data1', 'data'),
     ], prevent_initial_call=True
 )
-def show_input2(nclick, drop_input, text_input, date, meta_data, tab
+def show_input2(nclick, drop_input, text_input, dated, meta_data, tab
                 ):
     # if active_tab == 'tab-20':
             
@@ -402,10 +402,11 @@ def show_input2(nclick, drop_input, text_input, date, meta_data, tab
         if drop_input is not None:
             if drop_input == 'Other':
                 if text_input is not None:
-                    df = get_stock_data(text_input, date)
+                    df = get_stock_data(text_input, dated)
                     if not df.isna().iloc[0,1]:
                         val='Done'
-                        meta_data['start_from'] = date
+                        meta_data['start_from'] = dated
+                        meta_data['end_date'] = date.today()
                         meta_data['extracted_stock'] = text_input
                         stock_name = str.upper(meta_data['extracted_stock'].split('.')[0])
                         meta_data['stock_name'] = stock_name
@@ -425,8 +426,9 @@ def show_input2(nclick, drop_input, text_input, date, meta_data, tab
                             ]
             else:
                 val='Done'
-                df = get_stock_data(drop_input, date)
-                meta_data['start_from'] = date
+                df = get_stock_data(drop_input, dated)
+                meta_data['start_from'] = dated
+                meta_data['end_date'] = date.today()
                 meta_data['extracted_stock'] = drop_input
                 stock_name = str.upper(meta_data['extracted_stock'].split('.')[0])
                 meta_data['stock_name'] = stock_name

@@ -38,11 +38,17 @@ table = dash_table.DataTable(
     row_deletable=True,
     style_cell={
         'textAlign': 'center',
-        'whiteSpace':'normal',
-        'height':'auto'
+        # 'overflowX': 'scroll',
+        'whiteSpace': 'normal',
+        'height': 'auto',
     },
-    style_table={'overflowX':'auto'},
-    style_header={'fontWeight':'bold'}
+    style_table={'overflowX': 'auto'},
+
+    style_header={
+        # 'backgroundColor': 'white',
+        'fontWeight': 'bold'
+    },
+
 )
 
 add_row = dbc.Button('Add Row', id='add-row-button',style={'width':'50px','font-size':'10px', 'margin':'1px', 'padding':'1px'}, n_clicks=0)
@@ -78,7 +84,7 @@ holiday_layout = html.Div([
             table,
             html.Div([
                 add_row
-                ], id='div-add-row', hidden=True)
+                ], id='div-add-row', hidden=False)
 
         ], className='col-md-12')
     ], className='row ', style={'text-align':'right'}),
@@ -94,3 +100,41 @@ holiday_layout = html.Div([
 
 
 ], className='my-3')
+
+
+
+changepoin_layout = html.Div([
+    dcc.Graph(id='graph-cp'),
+    
+    html.Div([
+    # html.P('select changepoint from graph',id='check-cp'),
+    dbc.Alert(
+        "Saved",
+        id="alert-auto-cp",
+        is_open=False,
+        duration=4000,
+        color="info",
+        className='mt-5'
+    ),
+    
+    dash_table.DataTable(
+                        data=None,
+                        id='table-cp',
+                        columns= [{'name': 'Changepoints', 'id': 'Changepoints', 'type': 'any', 'editable': True}],
+                        editable=True,
+                        row_deletable=True,
+                        style_cell={
+                            'textAlign': 'center',
+                            'whiteSpace': 'normal',
+                            'height': 'auto',
+                        },
+                        style_table={'overflowX': 'auto', 'min-width':'300px', 'margin-top':'30px'},
+                        style_header={
+                            'fontWeight': 'bold'
+                        },
+                        # style={}
+                                 
+                ),
+    dbc.Button('Save', id='save_change-cp', className='m-3'),
+    ], className='d-flex flex-column justify-content-center align-items-center'),
+])

@@ -13,10 +13,11 @@ from prophet import Prophet
 import plotly.express as px
 from datetime import date, timedelta, datetime
 import plotly.graph_objects as go
-
+from dash.exceptions import PreventUpdate
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from math import sqrt
-
+import numpy as np
+from helping_files.components_plot import get_component_plot
 
 def get_mae(y_true, y_pred):
     mae = mean_absolute_error(y_true, y_pred)
@@ -42,6 +43,45 @@ def get_mase(y_true, y_pred, y_train):
     mae_train = (y_t - y_t_1).abs().mean()
     return round(mae_test/mae_train, 2)
 
+def get_error_graph():
+    fig = go.Figure()
+    fig.add_layout_image(dict(
+    source="assets/image.jpg",
+    x=0.2,
+    y=0.1,
+    )
+    )
+    fig.update_layout_images(dict(
+            xref="paper",
+            yref="paper",
+            sizex=1,
+            sizey=1,
+            xanchor="left",
+            yanchor="bottom"
+    ))
+    fig.update_layout(
+        margin=dict(t=0, l=0, r=0, b=0, pad = 0),
+        plot_bgcolor = '#FFFFFF',
+        paper_bgcolor = '#FFFFFF',
+        )
+    fig.update_yaxes(
+                title=None,
+                showline = False,
+                showgrid=False,
+                zeroline = False,
+                tickmode='array',
+                tickvals=[]
+                )
+    fig.update_xaxes(
+                title=None,
+                showline = False,
+                showgrid=False,
+                zeroline = False,
+                tickmode='array',
+                tickvals=[]
+                )
+    return fig
+
 dash.register_page(__name__)
 
 colors = """#FCA311
@@ -58,7 +98,7 @@ predict = html.Div([
     html.Div([
         html.Div([
             html.Div([
-            html.Span('Select Training Period'),
+            html.Span('Select Training Period', id='pop-training'),
             dcc.DatePickerRange(
                 id='date-range2',
                 start_date_placeholder_text="Start Period",
@@ -70,6 +110,12 @@ predict = html.Div([
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Select training start and end date.',
+            target="pop-training",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
             html.Span('Select Testing Period', id='select-span'),
@@ -83,6 +129,12 @@ predict = html.Div([
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Select testing date end Point, starting date will be Training end date.',
+            target="select-span",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
             html.Span('Metrics'),
@@ -104,13 +156,73 @@ predict = html.Div([
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4'),
+        html.Div([
+            html.Div([
+            html.Span(['Saturating Maximum'],id='pop-smax'),
+            dcc.Dropdown(
+                id='smax',
+                options=[
+                    {'label': str(i), 'value': i} for i in [1,10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                ],
+                value=[20],
+                multi=False,
+                clearable=False,
+            )
+            ],id='', className='div-container')
+        ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Upper threshold for forecast, Only valid when growth is only logistic',
+            target="pop-smax",
+            body=True,
+            trigger="legacy",
+        ),
+        html.Div([
+            html.Div([
+            html.Span('Saturating Minimum', id='pop-smin'),
+            dcc.Dropdown(
+                id='smin',
+                options=[
+                    {'label': str(i), 'value': i} for i in [1,10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                ],
+                value=[20],
+                multi=False,
+                clearable=False,
+            )
+            ], className='div-container')
+        ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Lower threshold for forecast, Only valid when growth is only logistic',
+            target="pop-smin",
+            body=True,
+            trigger="legacy",
+        ),
+        html.Div([
+            html.Div([
+            html.Span('Show Changepoint and Trend', id='pop-cp-trend'),
+            dcc.Dropdown(
+                id='s-cp-trend',
+                options=[
+                    {'label': str(i), 'value': i} for i in [True, False]
+                ],
+                value=False,
+                multi=False,
+                clearable=False,
+            )
+            ], className='div-container')
+        ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Show changepoint and trend',
+            target="pop-cp-trend",
+            body=True,
+            trigger="legacy",
+        ),
         
     ], className='row', style={'margin':'auto'}),
     html.Hr(style={'margin':'0 2 2 2'}),
     html.Div([
         html.Div([
             html.Div([
-            html.Span('n_changepoints'),
+            html.Span('n_changepoints', id='pop-changepoint'),
             dcc.Dropdown(
                 id='id10',
                 options=[
@@ -122,9 +234,15 @@ predict = html.Div([
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Specify number of trend chainpoint.',
+            target="pop-changepoint",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-            html.Span('changepoint_prior_scale'),
+            html.Span('changepoint_prior_scale', id='pop-changepoint-prior'),
             dcc.Dropdown(
                 id='id1',
                 options=[
@@ -137,9 +255,15 @@ predict = html.Div([
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'L1 regularization',
+            target="pop-changepoint-prior",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-            html.Span('changepoint_range'),
+            html.Span('changepoint_range', id='pop-changepoint-range'),
             dcc.Dropdown(
                 id='id5',
                 options=[
@@ -151,37 +275,55 @@ predict = html.Div([
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Specify the range for the chagepoint points.',
+            target="pop-changepoint-range",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-            html.Span('seasonality_prior_scale'),
+            html.Span('seasonality_prior_scale', id='pop-seasomality'),
             dcc.Dropdown(
                 id='id2',
                 options=[
-                    {'label': str(i), 'value': i} for i in [0.001, 0.005, 0.01, 0.5, 1]
+                    {'label': str(i), 'value': i} for i in [0.001, 0.005, 0.01,0.1,0.5, 1]
                 ],
-                value=[10],
+                value=[1],
                 multi=True,
                 clearable=False,
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'L1 regularization',
+            target="pop-seasomality",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-            html.Span('holidays_prior_scale'),
+            html.Span('holidays_prior_scale', id='pop-holiday'),
             dcc.Dropdown(
                 id='id3',
                 options=[
-                    {'label': str(i), 'value': i} for i in [0.001, 0.005, 0.01, 0.5, 1]
+                    {'label': str(i), 'value': i} for i in [0.01,0.1,0.5, 1]
                 ],
-                value=[10],
+                value=[1],
                 multi=True,
                 clearable=False,
             )
                 ], className='div-container') 
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'L1 regularization',
+            target="pop-holiday",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-            html.Span('seasonality_mode'),
+            html.Span('seasonality_mode', id='pop-seasonolity-mode'),
             dcc.Dropdown(
                 id='id4',
                 options=[
@@ -193,40 +335,39 @@ predict = html.Div([
             )
             ], className='div-container')  
         ], className='col-sm-12 col-md-4'),
-        # html.Div([
-        #     html.Div([
-        #     html.Span('growth'),
-        #     dcc.Dropdown(
-        #         id='id6',
-        #         options=[
-        #             {'label': str(i), 'value': i} for i in ['linear', 'logistic']
-        #         ],
-        #         value='linear'
-        #     )
-        #       ], className='div-container')  
-        # ], className='col-sm-12 col-md-4'),
-        
+        dbc.Popover(
+            'Mode',
+            target="pop-seasonolity-mode",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-                html.Span('yearly_seasonality'),
+                html.Span('yearly_seasonality', id='pop-yearly'),
                 dcc.Dropdown(
                     id='id7',
                     options=[
-                        {'label': str(i), 'value': i} for i in ['auto', True, False, 10, 20, 30, 40, 50]
+                        {'label': str(i), 'value': i} for i in ['auto', True, False,10, 20,30]
                     ],
-                    value=['auto'],
+                    value=[True],
                     multi=True,
                     clearable=False,
                 )
             ], className='div-container')
         ], className='col-sm-12 col-md-4  '),
+        dbc.Popover(
+            'Yearly',
+            target="pop-yearly",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-            html.Span('weekly_seasonality'),
+            html.Span('weekly_seasonality', id='pop-weekly'),
             dcc.Dropdown(
                 id='id8',
                 options=[
-                    {'label': str(i), 'value': i} for i in ['auto', True, False, 10, 20, 30, 40, 50]
+                    {'label': str(i), 'value': i} for i in ['auto', True, False,10, 20,30]
                 ],
                 value=['auto'],
                 multi=True,
@@ -234,13 +375,19 @@ predict = html.Div([
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4 '),
+        dbc.Popover(
+            'Weekly',
+            target="pop-weekly",
+            body=True,
+            trigger="legacy",
+        ),
         html.Div([
             html.Div([
-            html.Span('daily_seasonality'),
+            html.Span('daily_seasonality', id='pop-daily'),
             dcc.Dropdown(
                 id='id9',
                 options=[
-                    {'label': str(i), 'value': i} for i in ['auto', True, False, 10, 20, 30, 40, 50]
+                    {'label': str(i), 'value': i} for i in ['auto', True, False,10, 20,30]
                 ],
                 value=['auto'],
                 multi=True,
@@ -248,6 +395,30 @@ predict = html.Div([
             )
             ], className='div-container')
         ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'daily',
+            target="pop-daily",
+            body=True,
+            trigger="legacy",
+        ),
+        html.Div([
+            html.Div([
+            html.Span('growth', id='pop-growth'),
+            dcc.Dropdown(
+                id='id6',
+                options=[
+                    {'label': str(i), 'value': i} for i in ['linear', 'logistic', 'flat']
+                ],
+                value='logistic'
+            )
+              ], className='div-container')  
+        ], className='col-sm-12 col-md-4'),
+        dbc.Popover(
+            'Select Growth Type',
+            target="pop-growth",
+            body=True,
+            trigger="legacy",
+        ),
         
     ], className='row', style={'margin':'auto'}),#this has also some padding 
     html.Hr(style={'margin':'0 2 2 2'}),
@@ -257,7 +428,20 @@ predict = html.Div([
                 html.H2(id='value'),
                 dcc.Loading(dcc.Graph(id='fig3')),
                 html.Hr(style={'margin':'0 2 2 2'}),
-                html.Div(id='result', className='p-sm-1 p-my-5')
+                html.Div(id='result', className='p-sm-1 p-my-5'),
+                dbc.Button('Plot', id='get_component', style={'width':'200px', 'margin':'10px'}),
+                # dbc.Modal(
+                #     [
+                #         dbc.ModalHeader(dbc.ModalTitle("Header")),
+                #         dbc.ModalBody(dcc.Loading(dcc.Graph(id='fig_component'))),
+                #     ],
+                #     id="modal-plot",
+                #     size="lg",
+                #     is_open=False,
+                # ),
+                html.Div([
+                        dcc.Loading(dcc.Graph(id='fig4'))
+                    ], hidden=True, id='com-div')
             ], className='div-container')
         ], className='col-sm-12')
     ], className='row', style={'margin':'auto'}),
@@ -289,6 +473,8 @@ layout = html.Div([
 
 
 
+
+#initial populate multi drop
 @dash.callback(
     [Output('date-range2', 'min_date_allowed'),
       Output('date-range2', 'start_date'),
@@ -299,11 +485,13 @@ layout = html.Div([
      Output('id3', 'value'),
      Output('id4', 'value'),
      Output('id5', 'value'),
-     # Input('id6', 'value'),
+     Output('id6', 'value'),
      Output('id7', 'value'),
      Output('id8', 'value'),
      Output('id9', 'value'),
-     Output('id10', 'value')
+     Output('id10', 'value'),
+     Output('smax', 'value'),
+     Output('smin', 'value')
      ],
     [
      Input('select-span', 'children')
@@ -317,19 +505,21 @@ layout = html.Div([
 def update_daterage(ninter, tab, stock, upload, data2):
     if tab == 'tab-10':
         start_date = upload['start_from']
+        end_date = upload['end_date']
     else:
         start_date = stock['start_from']
+        end_date = stock['end_date']
     try:
         return [start_date, data2['start_date'], data2['end_date'], data2['dt_t'],
-                data2['id1'], data2['id2'], data2['id3'], data2['id4'], data2['id5'], data2['id7'],
-                data2['id8'], data2['id9'], data2['id10']
+                data2['id1'], data2['id2'], data2['id3'], data2['id4'], data2['id5'], data2['id6'], 
+                data2['id7'], data2['id8'], data2['id9'], data2['id10'], data2['smax'], data2['smin']
                 ]
     except:
         return [start_date,
                     start_date,
-                    date.today() - timedelta(days=30),
-                    date.today(),
-                    0.05, 10, 10, 'additive', 0.8, 'auto', 'auto', 'auto', 25
+                    datetime.strftime(datetime.strptime(end_date, "%Y-%m-%d") - timedelta(days=30), "%Y-%m-%d"),
+                    end_date,
+                    0.05, 1, 1, 'additive', 0.8, 'logistic', True, 'auto', 'auto', 25, 10, 10
                     ]
 
 @dash.callback(
@@ -342,17 +532,35 @@ def update_daterage(ninter, tab, stock, upload, data2):
     Input('id3', 'value'),
     Input('id4', 'value'),
     Input('id5', 'value'),
-    # Input('id6', 'value'),
+    Input('id6', 'value'),
     Input('id7', 'value'),
     Input('id8', 'value'),
     Input('id9', 'value'),
-    Input('id10', 'value')
+    Input('id10', 'value'),
+    Input('smax', 'value'),
+    Input('smin', 'value')
     ]
     )
-def update_store3(dt_s, dt_e, dt_t, id1, id2, id3, id4, id5, id7, id8, id9, id10):
+def update_store3(dt_s, dt_e, dt_t, id1, id2, id3, id4, id5, id6, id7, id8, id9, id10, smax, smin):
     return {'start_date':dt_s, 'end_date':dt_e, 'dt_t':dt_t, 'id1':id1,'id2':id2, 
-            'id3':id3,'id4':id4, 'id5':id5,'id7':id7, 'id8':id8,'id9':id9,'id10':id10 
+            'id3':id3,'id4':id4, 'id5':id5,'id6':id6, 'id7':id7, 'id8':id8,'id9':id9,'id10':id10,
+            'smax':smax, 'smin':smin
             }
+
+# @dash.callback(
+#     Output('smax', 'disabled'),
+#     Output('smin', 'disabled'),
+#     Input('store-data3','data')
+#     )
+# def disable_True(data):
+#     if data:
+#         if 'logistic' in data['id6'] and len(data['id6']) == 1:
+#             return False, False
+#         else:
+#             return True, True
+#     else:
+#         return False, False
+
 
 @dash.callback(
         [
@@ -361,22 +569,24 @@ def update_store3(dt_s, dt_e, dt_t, id1, id2, id3, id4, id5, id7, id8, id9, id10
             Output('id3', 'multi'),
             Output('id4', 'multi'),
             Output('id5', 'multi'),
+            Output('id6', 'multi'),
             Output('id7', 'multi'),
             Output('id8', 'multi'),
             Output('id9', 'multi'),
-            Output('id10', 'multi')
+            Output('id10', 'multi'),
             ],
         Input('id1', 'value'),
         Input('id2', 'value'),
         Input('id3', 'value'),
         Input('id4', 'value'),
         Input('id5', 'value'),
+        Input('id6', 'value'),
         Input('id7', 'value'),
         Input('id8', 'value'),
         Input('id9', 'value'),
         Input('id10', 'value')
     )
-def prevent_multi(id1, id2, id3, id4, id5, id7, id8, id9, id10):
+def prevent_multi(id1, id2, id3, id4, id5, id6, id7, id8, id9, id10):
     if not isinstance(id1, list):
         id1 = [id1]
     if not isinstance(id2, list):
@@ -387,6 +597,8 @@ def prevent_multi(id1, id2, id3, id4, id5, id7, id8, id9, id10):
         id4 = [id4]
     if not isinstance(id5, list):
         id5 = [id5]
+    if not isinstance(id6, list):
+        id6 = [id6]
     if not isinstance(id7, list):
         id7 = [id7]
     if not isinstance(id8, list):
@@ -396,7 +608,7 @@ def prevent_multi(id1, id2, id3, id4, id5, id7, id8, id9, id10):
     if not isinstance(id10, list):
         id10 = [id10]
         
-    id_list = [len(id1), len(id2), len(id3), len(id4), len(id5), len(id7), len(id8), len(id9), len(id10)]
+    id_list = [len(id1), len(id2), len(id3), len(id4), len(id5), len(id6), len(id7), len(id8), len(id9), len(id10)]
     result = [i>1 for i in  id_list]
     try:
         ind = result.index(True)
@@ -421,7 +633,8 @@ def update_daterage2(data):
         Output('value', 'children'),
         Output('fig3', 'figure'),
         Output('store-data-final', 'data'),
-        Output('result', 'children')
+        Output('result', 'children'),
+        Output("get_component", "children")
     ],
     [
         Input('id1', 'value'),
@@ -429,7 +642,7 @@ def update_daterage2(data):
         Input('id3', 'value'),
         Input('id4', 'value'),
         Input('id5', 'value'),
-        # Input('id6', 'value'),
+        Input('id6', 'value'),
         Input('id7', 'value'),
         Input('id8', 'value'),
         Input('id9', 'value'),
@@ -437,18 +650,24 @@ def update_daterage2(data):
         Input('date-range2', 'start_date'),
         Input('date-range2', 'end_date'),
         Input('date-range3', 'date'),
-        Input('mes-para', 'value')
+        Input('mes-para', 'value'),
+        Input('smax', 'value'),
+        Input('smin', 'value'),
+        Input('s-cp-trend', 'value'),
+        Input("get_component", "n_clicks")
     ],
     [
         State('store-data1', 'data'),
         State('store-data2', 'data'),
         State('store-data5', 'data'),
         State('store-data4', 'data'),
+        State('store-changepoint', 'data'),
+        State("get_component", "children")
         
     ]
 )
-def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,mes_para,
-               tab, stock, upload, holiday_meta_data):
+def get_update(id1, id2, id3, id4, id5, id6, id7, id8, id9, id10, dr_s, dr_e, dr_t,mes_para, smax, smin,scp,get_comp,
+               tab, stock, upload, holiday_meta_data, store_cp, to_plot):
     try:
         
         testing_interval = (datetime.strptime(dr_t, "%Y-%m-%d") - datetime.strptime(dr_e, "%Y-%m-%d")).days
@@ -463,6 +682,8 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
             id4 = [id4]
         if not isinstance(id5, list):
             id5 = [id5]
+        if not isinstance(id6, list):
+            id6 = [id6]
         if not isinstance(id7, list):
             id7 = [id7]
         if not isinstance(id8, list):
@@ -478,18 +699,21 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
                 'holidays_prior_scale': id3,
                 'seasonality_mode': id4,
                 'changepoint_range': id5,
-                # 'growth':growth,
+                'growth':id6,
                 'yearly_seasonality': id7,
                 'weekly_seasonality': id8,
                 'daily_seasonality': id9,
                 'n_changepoints': id10
             }
+        if store_cp['changepoint']:
+            param_dic['changepoints'] = store_cp['changepoint']
         
         index, name, times_it = 1,'dummy', 1
         for i, (j, k) in enumerate(param_dic.items()):
-            if len(k)>1:
+            if j == 'changepoints':
+                continue
+            elif len(k)>1:
                 index, name, times_it = i, j, len(k)
-        
         
         total_params = []
         
@@ -497,15 +721,21 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
             for time in range(times_it):
                 param = {}
                 for i, (j, k)in enumerate(param_dic.items()):
-                    if i != index:
-                        param[j] = k[0]
+                    if j == 'changepoints':
+                        param[j] = k
                     else:
-                        param[j] = k[time]
+                        if i != index:
+                            param[j] = k[0]
+                        else:
+                            param[j] = k[time]
                 total_params.append(param)
         else:
             param = {}
             for j, k in param_dic.items():
-                param[j] = k[0]
+                if j == 'changepoints':
+                    param[j] = k
+                else:
+                    param[j] = k[0]
             
             total_params.append(param)
             
@@ -522,6 +752,9 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
         tdata.columns = ['ds', 'y']
         tdata['ds'] = pd.to_datetime(tdata.ds).dt.strftime('%Y-%m-%d')
         
+        end_point = tdata.query('ds == @dr_e')['y'].values
+        max_val = (1 + (smax/100)) * int(end_point)
+        min_val = (1 - (smin/100)) * int(end_point)
         
         try:
             holiday_df = pd.DataFrame(holiday_meta_data['holiday_data'])
@@ -544,7 +777,8 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
         # tdata.set_index('ds', inplace=True,drop=True)
         data = data.loc[dr_s:dr_e]
         data.reset_index(inplace=True)
-        
+        data['cap'] = max_val
+        data['floor'] = min_val
         # test = tdata.set_index('ds', drop=True)
         # test = tdata.loc[dr_e:dr_t]
         # test.reset_index(inplace=True)
@@ -557,12 +791,14 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
                 else:
                     m = Prophet(**params).fit(data)
                 future = m.make_future_dataframe(periods=testing_interval+30)
-                y_train = m.predict(future)
-                y_train = y_train.loc[:, ['ds', 'yhat']]    
-                y_train['Type'] = str(param_dic[name][i])
-                y_train.columns = ['ds', 'yhat', 'Type']
-                y_train['ds'] = pd.to_datetime(y_train.ds).dt.strftime('%Y-%m-%d')
-                y_train_final = pd.concat([y_train_final, y_train])
+                future['cap'] = max_val
+                future['floor'] = min_val
+                y_train_final2 = m.predict(future)
+                y_train_final2 = y_train_final2.loc[:, ['ds', 'yhat']]    
+                y_train_final2['Type'] = str(param_dic[name][i])
+                y_train_final2.columns = ['ds', 'yhat', 'Type']
+                y_train_final2['ds'] = pd.to_datetime(y_train_final2.ds).dt.strftime('%Y-%m-%d')
+                y_train_final = pd.concat([y_train_final, y_train_final2])
             
         else:
             params = total_params[0]
@@ -571,9 +807,11 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
             else:
                 m = Prophet(**params).fit(data)
             future = m.make_future_dataframe(periods=testing_interval+30)
-            y_train_final = m.predict(future)
-            y_train_upper_lower = y_train_final.loc[:, ['ds', 'yhat_lower', 'yhat_upper']]
-            y_train_final = y_train_final.loc[:, ['ds', 'yhat']]
+            future['cap'] = max_val
+            future['floor'] = min_val
+            y_train_final2 = m.predict(future)
+            y_train_upper_lower = y_train_final2.loc[:, ['ds', 'yhat_lower', 'yhat_upper']]
+            y_train_final = y_train_final2.loc[:, ['ds', 'yhat']]
             y_train_final['Type'] = 'Prediction'
             y_train_final.columns = ['ds', 'yhat', 'Type']
             y_train_final['ds'] = pd.to_datetime(y_train_final.ds).dt.strftime('%Y-%m-%d')
@@ -626,13 +864,9 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
         fig.update_yaxes(
                     title=None,
                     showline = False,
-        
                     showgrid=False,
-        
                     fixedrange=True,
-        
                     zeroline = False,
-        
                     nticks=5,
                     ticks="inside",
                     tickcolor='black',
@@ -657,11 +891,23 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
                   layer="above", line_width=1,
                   line_color='rgba(0, 0, 0, 0.4)',
                   line_dash="dash")
+        if 'logistic' in id6 and len(id6) == 1:
+            fig.add_hline(y=max_val,
+                      fillcolor="black", opacity=0.3,
+                      layer="above", line_width=1,
+                      line_color='rgba(0, 0, 0, 0.4)',
+                      line_dash="dash")
+            fig.add_hline(y=min_val,
+                      fillcolor="black", opacity=0.3,
+                      layer="above", line_width=1,
+                      line_color='rgba(0, 0, 0, 0.4)',
+                      line_dash="dash")
         fig.add_vrect(x1=dr_e, x0=dr_t, line_width=0, fillcolor=colors[4], opacity=0.2)
         fig.update_layout(
             margin=dict(t=0, l=0, r=0, b=0, pad = 0),
             plot_bgcolor = '#FFFFFF',
-            paper_bgcolor = '#FFFFFF'
+            paper_bgcolor = '#FFFFFF',
+            height=500
         )
         if holiday:
             scatter_trace = go.Scatter(x=d.ds, y=d.y, mode="markers", text=d.holiday,
@@ -669,6 +915,23 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
                                        hovertemplate='<b>%{text}</b><br><extra></extra>'
                                       )
             fig.add_trace(scatter_trace)
+        
+        if scp and times_it == 1:
+            scatter_trace = go.Scatter(x=y_train_final2['ds'], y = y_train_final2['trend'], mode='lines',
+                                       marker=dict(color='blue'), showlegend=False)
+            fig.add_trace(scatter_trace)
+            
+            threshold=0.001
+            signif_changepoints = m.changepoints[np.abs(np.nanmean(m.params['delta'], axis=0)) >= threshold] if len(m.changepoints) > 0 else []
+        
+            for i in signif_changepoints:
+                
+                fig.add_vline(x=i,
+                          fillcolor="black", opacity=1,
+                          layer="above", line_width=1,
+                          line_color='rgba(0, 0, 0, 0.9)',
+                          line_dash="dash")
+            
             
         
         if times_it == 1:
@@ -745,6 +1008,7 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
         result = result.rename(columns={'index':'Metrics'})
         val = list(result.columns)
         tabled = html.Div([
+            
             html.H4('Metrics'),
             dash_table.DataTable(
                 data=result.to_dict('records'),
@@ -765,48 +1029,25 @@ def get_update(id1, id2, id3, id4, id5, id7, id8, id9, id10, dr_s, dr_e, dr_t,me
             ),
         ], className='d-flex flex-column', style={'text-align':'center'})
         
-        return [
-            f'{stock_name}',
-               fig, df.to_json(orient='records', date_format='iso'), tabled]
-    
+        
+        trigger = dash.callback_context.triggered[0]['prop_id'].split('.')[0]
+        if to_plot  == 'Plot Components' and trigger == 'get_component':
+            if times_it == 1:
+                fig2 = get_component_plot(m, y_train_final2)
+                return [
+                f'{stock_name}',
+                   fig2, df.to_json(orient='records', date_format='iso'), '', 'Plot Forecast']
+            else:
+                fig = get_error_graph()
+                return ['Error - Not works in comparision mode', fig, None, '', 'Plot Forecast']
+        else:
+            return [
+            f' {stock_name}',
+               fig, df.to_json(orient='records', date_format='iso'), tabled, 'Plot Components']
+        
     except Exception as e:
-        fig = go.Figure()
-        fig.add_layout_image(dict(
-        source="assets/image.jpg",
-        x=0.2,
-        y=0.1,
-        )
-        )
-        fig.update_layout_images(dict(
-                xref="paper",
-                yref="paper",
-                sizex=1,
-                sizey=1,
-                xanchor="left",
-                yanchor="bottom"
-        ))
-        fig.update_layout(
-            margin=dict(t=0, l=0, r=0, b=0, pad = 0),
-            plot_bgcolor = '#FFFFFF',
-            paper_bgcolor = '#FFFFFF',
-            )
-        fig.update_yaxes(
-                    title=None,
-                    showline = False,
-                    showgrid=False,
-                    zeroline = False,
-                    tickmode='array',
-                    tickvals=[]
-                    )
-        fig.update_xaxes(
-                    title=None,
-                    showline = False,
-                    showgrid=False,
-                    zeroline = False,
-                    tickmode='array',
-                    tickvals=[]
-                    )
-        return ['Error', fig, None, str(e)]
+        fig = get_error_graph()
+        return ['Error', fig, None, f'{str(e)}', 'Plot']
 
 
 @dash.callback(Output("download_xslx", "data"), 
@@ -828,3 +1069,12 @@ def generate_xlsx(n_nlicks, data):
 
     return dcc.send_bytes(to_xlsx, "prediction.xlsx")
 
+# @dash.callback(
+#     Output("modal-plot", "is_open"),
+#     Input("get_component", "n_clicks"),
+#     State("modal-plot", "is_open"),
+# )
+# def toggle_modal(n1, is_open):
+#     if n1:
+#         return not is_open
+#     return is_open
