@@ -17,7 +17,7 @@ app = Dash(__name__,
            meta_tags=[
                {"name": "viewport", "content": "width=device-width, initial-scale=1"}
              ],
-            suppress_callback_exceptions=True
+            suppress_callback_exceptions=False
            )
 server = app.server
 
@@ -48,6 +48,10 @@ upload_data_2 = dcc.Store(id='store-data-upload2', data=None, storage_type='sess
 
 final_data = dcc.Store(id='store-data-final', data=None, storage_type='session')
 
+
+changepoint = dcc.Store(id='store-changepoint', data={'changepoint':None}, storage_type='session')
+
+
 path = {'which_path':None}
 path_save = dcc.Store(id='store-data-path', data=None, storage_type='session')
 app.layout = html.Div([
@@ -60,7 +64,8 @@ app.layout = html.Div([
     upload_data_2,
     path_save,
     date_upload,
-    final_data
+    final_data,
+    changepoint
 
 ])
 
