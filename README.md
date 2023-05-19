@@ -25,6 +25,7 @@ There are Two options, Either you can upload your data or can choose Stock and i
 ![step2 graph](assets/head3.PNG)
 
 * Step 2 - Adding Features
+
 ** Adding Holidays
 Holidays in a Prophet model can significantly improve the accuracy of the forecasts, especially if there are significant seasonal variations in the data.
 
