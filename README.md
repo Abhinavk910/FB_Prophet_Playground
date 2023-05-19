@@ -38,10 +38,10 @@ SomeTimes Manually adding changepoints help increase the accuracy of the forecas
 
 * Step 3 - Forecasting Playground
  
-[step3 playground](assets/head6.PNG)
+![step3 playground](assets/head6.PNG)
 
 Have all the tools to tune Prophet Model. You can also plot components.
 
-[step3 components](assets/head7.PNG)
+![step3 components](assets/head7.PNG)
 
 
