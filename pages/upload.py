@@ -13,109 +13,100 @@ import dash_bootstrap_components as dbc
 from datetime import date, timedelta
 import pandas as pd
 from helping_files.funtions import get_stock_data, parse_contents, plot_upload
-# from helping_files.upload_layout import upload_layout, stock_layout
 
 dash.register_page(__name__)
 
-
-# df = get_stock_data('tcs.ns', '2023-01-01')
-# data = df.to_json(orient='records', date_format='iso')
-
-
-
 upload_layout = html.Div([
         html.Div([
+            html.Div([
+                html.Div([
+                    dcc.Upload(
+                        id='upload-data',
+                        children=html.Div([
+                            html.A('Select File')
+                        ]),
+                        style={
+                            'height': '30px','lineHeight': '30px','borderWidth': '1px','borderStyle': 'dashed',
+                            'borderRadius': '5px','textAlign': 'center','margin': '5px'
+                        },
+                        multiple=False
+                    ),
+                ], className='div-container')
+            ], className='col-sm-12')
+        ], className='row', style={'margin':'auto'}),
+        dcc.Loading(dbc.Alert(
+            "You have to upload .csv or .xlsx file. Please do check!!",
+            id="alert-auto5",
+            is_open=False,
+            duration=4000,
+            color="danger",
+            className='mt-5'
+        )),
+    
         html.Div([
             html.Div([
-                dcc.Upload(
-                    id='upload-data',
-                    children=html.Div([
-                        html.A('Select File')
-                    ]),
-                    style={
-                        'height': '30px','lineHeight': '30px','borderWidth': '1px','borderStyle': 'dashed',
-                        'borderRadius': '5px','textAlign': 'center','margin': '5px'
-                    },
-                    multiple=False
-                ),
-            ], className='div-container')
-        ], className='col-sm-12')
-    ], className='row', style={'margin':'auto'}),
-    dcc.Loading(dbc.Alert(
-        "You have to upload .csv or .xlsx file. Please do check!!",
-        id="alert-auto5",
-        is_open=False,
-        duration=4000,
-        color="danger",
-        className='mt-5'
-    )),
-    
-    html.Div([
-                 html.Div([
-                     html.Div([
-                         html.Div([
-                             html.H4('First 3 rows'),
-                             dash_table.DataTable(
-                                 data=None,
-                                 id='upload-datatable',
-                                 style_cell={
-                                     'textAlign': 'center',
-                                     # 'overflowX': 'scroll',
-                                     'whiteSpace': 'normal',
-                                     'height': 'auto',
-                                 },
-                                 style_table={'overflowX': 'auto'},
+                html.Div([
+                    html.Div([
+                        html.H4('First 3 rows'),
+                        dash_table.DataTable(
+                             data=None,
+                             id='upload-datatable',
+                             style_cell={
+                                 'textAlign': 'center',
+                                 # 'overflowX': 'scroll',
+                                 'whiteSpace': 'normal',
+                                 'height': 'auto',
+                             },
+                             style_table={'overflowX': 'auto'},
 
-                                 style_header={
-                                     # 'backgroundColor': 'white',
-                                     'fontWeight': 'bold'
-                                 },
-                                 
-                             ),
-                         ], className='d-flex flex-column', style={'text-align':'center'})
-                     ], className='col-sm-12 col-md-6 p-2'),
-                     html.Div([
+                             style_header={
+                                 # 'backgroundColor': 'white',
+                                 'fontWeight': 'bold'
+                             },
+                             
+                        ),
+                    ], className='d-flex flex-column', style={'text-align':'center'})
+                ], className='col-sm-12 col-md-6 p-2'),
+                html.Div([
                          # html.Div([
-                             html.Div([
-                                 html.H4('Select Columns'),
-                                 html.Div([
-                                     html.Div([
-                                         html.Div([
-                                             html.P('Date'),
-                                         ], className='col-sm-12 col-md-4'),
-                                         html.Div([
-                                             dcc.Dropdown(id='date-col',
-                                                 options=[{'label': i, 'value': i} for i in ['dd']],#df.columns],
-                                             )
-                                         ], className='col-sm-12 col-md-8')
-                                     ], className='row')
-                                 ], className='col-sm-12'),
-                                 html.Hr(className="mt-2 mb-2"),
-                                 html.Div([
-                                     html.Div([
-                                         html.Div([
-                                             html.P('Data'),
-                                         ], className='col-sm-12 col-md-4'),
-                                         html.Div([
-                                             dcc.Dropdown(id='data-col',
-                                                 options=[{'label': i, 'value': i} for i in ['dd']],#df.columns],
-                                             )
-                                         ], className='col-sm-12 col-md-8')
-                                     ], className='row')
-                                 ], className='col-sm-12 mt-1')
-                             ], className='row g-0')
-                         # ], className='m-4 p-3')
-                     ], className='col-sm-12 col-md-6 p-2')
-                 ], className='row g-0')
-                 ], id='output-data-upload',className='div-container3 mt-3', hidden=True),
+                    html.Div([
+                        html.H4('Select Columns'),
+                        html.Div([
+                            html.Div([
+                                html.Div([
+                                    html.P('Date'),
+                                ], className='col-sm-12 col-md-4'),
+                            html.Div([
+                                dcc.Dropdown(id='date-col',
+                                    options=[{'label': i, 'value': i} for i in ['dd']],#df.columns],
+                                )], className='col-sm-12 col-md-8')
+                            ], className='row')
+                        ], className='col-sm-12'),
+                        html.Hr(className="mt-2 mb-2"),
+                        html.Div([
+                            html.Div([
+                                html.Div([
+                                    html.P('Data'),
+                                ], className='col-sm-12 col-md-4'),
+                                html.Div([
+                                    dcc.Dropdown(id='data-col',
+                                        options=[{'label': i, 'value': i} for i in ['dd']],#df.columns],
+                                    )
+                                ], className='col-sm-12 col-md-8')
+                            ], className='row')
+                        ], className='col-sm-12 mt-1')
+                    ], className='row g-0')
+                ], className='col-sm-12 col-md-6 p-2')
+            ], className='row g-0')
+        ], id='output-data-upload',className='div-container3 mt-3', hidden=True),
     
         html.Div([
             html.Div([
                 dbc.Button('Plot',id='get-upload-data', style={'width':'200px', 'margin':'10px'}),
                 html.Div([
-                        html.A(dbc.Button('Adding Features --->', id='get_feature', style={'width':'200px', 'margin':'10px'}), href='/addholiday'),
-                        html.A(dbc.Button('Forecasting --->', id='get_forcast', style={'width':'200px', 'margin':'10px'}), href='/predict')
-                    ], id='hidden-div2', hidden=True)
+                    html.A(dbc.Button('Adding Features --->', id='get_feature', style={'width':'200px', 'margin':'10px'}), href='/addholiday'),
+                    html.A(dbc.Button('Forecasting --->', id='get_forcast', style={'width':'200px', 'margin':'10px'}), href='/predict')
+                ], id='hidden-div2', hidden=True)
             ], className='col-sm-12 d-flex justify-content-center flex-wrap mt-5')
         ], className='row ', style={'text-align':'center'}),
         dcc.Loading(dbc.Alert(
@@ -128,53 +119,52 @@ upload_layout = html.Div([
         html.Hr(style={'margin':'0 2 2 2'}, id='graph-hr', hidden=True),
         html.Div([
             html.Div([
-                    html.Div([
-                        html.H2(id='stock-name'),
-                        dcc.Loading(dcc.Graph(id='fig1'))
-                        ], style={'margin':'1px', 'padding':'1px'})
+                html.Div([
+                    html.H2(id='stock-name'),
+                    dcc.Loading(dcc.Graph(id='fig1'))
+                ], style={'margin':'1px', 'padding':'1px'})
             ], className='col-sm-12')
-    ], className='row', style={'margin':'auto'}, id='graph-row', hidden=True)
-    # ], className='div-container p-sm-1 p-md-5', style={'min-width':'80%'})
+        ], className='row', style={'margin':'auto'}, id='graph-row', hidden=True)
     ])
-
 
 stock_layout = html.Div([
         html.Div([
-          html.Div([
-              html.H4('Select Stock')
-          ], className='col-sm-12 col-md-6 text-center'),
-          html.Div([
-              dcc.Dropdown(
-                  id='select-stock',
-                  options=[
+            html.Div([
+                html.H4('Select Stock')
+            ], className='col-sm-12 col-md-6 text-center'),
+            html.Div([
+                dcc.Dropdown(
+                    id='select-stock',
+                    options=[
                       {'label':i, 'value':i} for i in ['RELIANCE.NS', 'TCS.NS', 'SBIN.NS', 'GOOG','MSFT', 'Other']
-                  ],
-                  placeholder='',
-                  multi=False,
-                  clearable=False,
-                  style={'text-align':'center', 'font-weight':'400', 'font-size':'1.2rem', }
-              )
-          ], className='col-sm-12 col-md-6')
+                    ],
+                    placeholder='',
+                    multi=False,
+                    clearable=False,
+                    style={'text-align':'center', 'font-weight':'400', 'font-size':'1.2rem', }
+                )
+            ], className='col-sm-12 col-md-6')
         ], id='stock-dropdown', className='row mb-2', style={'min-width':'80%'}),
         html.Div([
-              html.Div([
-                  html.H4(['Type Stock Symbol from ',html.A('"YFinance"', href='https://finance.yahoo.com/',
+            html.Div([
+                html.H4(['Type Stock Symbol from ',html.A('"YFinance"', href='https://finance.yahoo.com/',
                                                             target="_blank", style={'color':'black'}
-                                                           )])
-              ], className='col-sm-12 col-md-6 text-center'),
-              html.Div([
-                 dbc.Input(id='stock-input', style={'text-align':'center', 'font-weight':'400',
+                                                           )
+                ])
+            ], className='col-sm-12 col-md-6 text-center'),
+            html.Div([
+                dbc.Input(id='stock-input', style={'text-align':'center', 'font-weight':'400',
                                                     'font-size':'1.2rem', 'height':'37px'})
-              ], className='col-sm-12 col-md-6')
-            ], className='row', id='input-stock-row',hidden=True, style={'min-width':'80%'}),
+            ], className='col-sm-12 col-md-6')
+        ], className='row', id='input-stock-row',hidden=True, style={'min-width':'80%'}),
         html.Hr(style={'margin':'0 2 2 2'}),
         html.P(id='print-here'),
         html.Div([
-              html.Div([
+            html.Div([
                   html.H4(['Stock Data From '])
-              ], className='col-sm-12 col-md-6 text-center'),
-              html.Div([
-                 dcc.DatePickerSingle(
+            ], className='col-sm-12 col-md-6 text-center'),
+            html.Div([
+                dcc.DatePickerSingle(
                     id='date-range1',
                     min_date_allowed=date(1995, 8, 5),
                     max_date_allowed=date.today()- timedelta(days=90),
@@ -182,8 +172,8 @@ stock_layout = html.Div([
                     date=date.today() - timedelta(days=365),
                     style={'width':'100%'}
                 ),
-              ], className='col-sm-12 col-md-6')
-            ], className='row', style={'min-width':'80%'}),
+            ], className='col-sm-12 col-md-6')
+        ], className='row', style={'min-width':'80%'}),
         html.Hr(style={'margin':'0 2 2 2'}),
         html.Div([
             html.Div([
@@ -191,7 +181,7 @@ stock_layout = html.Div([
                 html.Div([
                         html.A(dbc.Button('Adding Features --->', style={'width':'200px', 'margin':'10px'}), href='/addholiday'),
                         html.A(dbc.Button('Forecasting --->', style={'width':'200px', 'margin':'10px'}), href='/predict')
-                    ], id='hidden-div1', hidden=True)
+                ], id='hidden-div1', hidden=True)
             ], className='col-sm-12 d-flex justify-content-center flex-wrap')
         ], className='row ', style={'text-align':'center'}),
         dbc.Alert(
@@ -202,24 +192,16 @@ stock_layout = html.Div([
             color="danger"
         ),
         html.Hr(style={'margin':'0 2 2 2'}, id='graph-hr2', hidden=True),
-        # html.Div([
-        #     html.Div([
-        #         html.Div([
-        #             html.H2(id='value'),
-        #             dcc.Loading(dcc.Graph(id='fig3'))
-        #         ], className='div-container')
-        #     ], className='col-sm-12')
-        # ], className='row', style={'margin':'auto'}),
         dcc.Loading(
-        html.Div([
             html.Div([
                 html.Div([
-                    html.H2(id='stock-name2'),
-                    dcc.Loading(dcc.Graph(id='fig2'))
+                    html.Div([
+                        html.H2(id='stock-name2'),
+                        dcc.Loading(dcc.Graph(id='fig2'))
                     ], style={'margin':'1px', 'padding':'1px'})
-            ], className='col-sm-12')
-    ], className='row', style={'margin':'auto','overflow-x': 'scroll',
-    '-webkit-overflow-scrolling': 'touch'}, id='graph-row2', hidden=True))
+                ], className='col-sm-12')
+        ], className='row', style={'margin':'auto','overflow-x': 'scroll',
+                                    '-webkit-overflow-scrolling': 'touch'}, id='graph-row2', hidden=True))
     ])
 
 
@@ -248,7 +230,7 @@ layout = html.Div(children=[
              style={"background-color": "#ECF9FF"})
 
 
-
+#CB1 - on clicking tab update content and store active tab 
 @dash.callback([Output("data-content", "children"), Output('store-data1', 'data')],
                [Input("data-tab", "active_tab")])
 def switch_tab(at):
@@ -259,7 +241,7 @@ def switch_tab(at):
 
 
 
-# upload data
+#CB2 - upload data
 @dash.callback([Output('store-data-upload', 'data'), Output('output-data-upload', 'hidden'), Output('alert-auto5', 'is_open')],
               [Input('upload-data', 'contents')],
               [State('upload-data', 'filename'),
@@ -278,7 +260,7 @@ def upload_data(list_of_contents, list_of_names, list_of_dates):
 
 
 
-#populating table and dropdown
+#CB3 - populating table and dropdown
 @dash.callback(
         [Output('upload-datatable', 'data'),
         Output('upload-datatable', 'columns'),
@@ -286,7 +268,8 @@ def upload_data(list_of_contents, list_of_names, list_of_dates):
         Output('data-col', 'options')
         ],
         Input('output-data-upload', 'hidden'),
-        State('store-data-upload', 'data'),prevent_initial_call=True
+        State('store-data-upload', 'data'),
+        prevent_initial_call=True
     )
 def populate_uploaded_data(inputit, datait):
     if not inputit:
@@ -295,8 +278,10 @@ def populate_uploaded_data(inputit, datait):
         val2 = [{'label': i, 'value': i} for i in df.columns]
         return [df.iloc[:3].to_dict('records'), val, val2, val2]
     else:
-        PreventUpdate
+        raise PreventUpdate
 
+
+#CB4 - updating uploaded Graph and adding buttons
 @dash.callback(
     [Output('store-data5', 'data'),
     Output('alert-auto3', 'is_open'), Output('alert-auto3', 'children'),
@@ -314,7 +299,6 @@ def populate_uploaded_data(inputit, datait):
     prevent_initial_call=True 
     )
 def show_input1(nclick, data_upload_final, upload_data, data_col, date_col, tab):
-    # if tab_active == 'tab-10':
     if nclick:
         if data_col is None or date_col is None:
             val = 'Please upload data, if uploaded then select Date and Data Columns'
@@ -361,6 +345,7 @@ def show_input1(nclick, data_upload_final, upload_data, data_col, date_col, tab)
 
 
 
+#CB5 - if stock not in dropdown then
 @dash.callback(
     [Output('input-stock-row', 'hidden'), Output('stock-dropdown', 'hidden')],
     [Input('select-stock', 'value')], prevent_initial_call=True
@@ -373,6 +358,7 @@ def show_input(val):
   
 
 
+#CB6 - updaing stock figure and buttons
 @dash.callback(
     [
      
